@@ -1,0 +1,15 @@
+{
+"name": "Minimap",
+"version": "1.0",
+"description": "Displays a little minimap",
+"background_page": "background.html",
+  "browser_action": {
+     "default_icon": "icon.png",
+     "default_title": "Make map"
+   },
+  "permissions": [
+	  "tabs",
+	  "http://*/*",
+	  "https://*/*"
+  ]
+}
