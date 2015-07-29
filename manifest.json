@@ -1,15 +1,38 @@
 {
-"name": "Minimap",
-"version": "1.0",
-"description": "Displays a little minimap",
-"background_page": "background.html",
+  "name": "Minimap",
+  "version": "0.1",
+  "manifest_version": 2,
+  "description": "Displays a little minimap",
+  "background": {
+    "scripts": [
+      "background.js"
+    ],
+    "persistent": false
+  },
   "browser_action": {
-     "default_icon": "icon.png",
-     "default_title": "Make map"
-   },
+    "default_title": "Displays a little minimap",
+    "default_icon": {
+      "19": "icon.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "run_at": "document_end",
+      "js": [
+        "html2canvas.js",
+        "minimap.js"
+      ],
+      "css": [
+        "style.css"
+      ]
+    }
+  ],
   "permissions": [
-	  "tabs",
-	  "http://*/*",
-	  "https://*/*"
+    "tabs",
+    "http://*/*",
+    "https://*/*"
   ]
 }

@@ -1,0 +1,25 @@
+#minimap-extension-element {
+	background: rgba(100,100,100,0.4);
+	width: 200px;
+
+	position: fixed;
+	right: 8px;
+	top: 8px;
+
+	overflow-y: hidden;
+}
+
+#minimap-extension-element > canvas {
+	width: 200px;
+	opacity: 0.6;
+}
+
+#minimap-extension-element-window {
+	background-color: rgba(190,0,50,0.5);
+	width: 198px;
+
+	position: absolute;
+
+	border: 1px solid black;
+	left:0;
+}
