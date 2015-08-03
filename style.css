@@ -7,6 +7,17 @@
 	top: 8px;
 
 	overflow-y: hidden;
+
+	z-index:9999;
+
+	pointer-events: none;
+	opacity: 0;
+
+	transition: opacity 0.25s ease-in;
+}
+
+#minimap-extension-element.show {
+	opacity: 1;
 }
 
 #minimap-extension-element > canvas {
@@ -14,7 +25,7 @@
 	opacity: 0.6;
 }
 
-#minimap-extension-element-window {
+#minimap-extension-element-viewport {
 	background-color: rgba(190,0,50,0.5);
 	width: 198px;
 

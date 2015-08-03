@@ -16,6 +16,7 @@
       ],
       "run_at": "document_end",
       "js": [
+        "lodash.js",
         "html2canvas.js",
         "minimap.js"
       ],
@@ -24,6 +25,12 @@
       ]
     }
   ],
+  "background": {
+    "scripts": [
+      "background.js"
+    ],
+    "persistent": false
+  },
   "permissions": [
     "tabs",
     "http://*/*",
