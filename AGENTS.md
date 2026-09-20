@@ -150,23 +150,31 @@ merits — it matches how VSCode/Sublime's minimap jumps (instant, not
 animated). If smooth scrolling is ever wanted back, verify it actually
 moves `scrollY` over multiple reads before trusting it.
 
-## `chrome.commands` / `suggested_key` doesn't reliably auto-bind on unpacked dev extensions
+## The hotkey is Alt+Shift+M, not Ctrl+Shift+M — and don't rely on `chrome.commands` binding it
 
-`manifest.json` declares `commands._execute_action` with a `suggested_key`
-of Ctrl+Shift+M. In practice, across a normal reload-heavy dev loop, this
-showed as **"Not set"** on `chrome://extensions/shortcuts` — Chrome seems to
-only apply `suggested_key` on a genuinely fresh install, not on every
-extension reload. Tried setting it by dispatching synthetic key events at
-the shortcuts page's recorder `<input>` via CDP `Input.dispatchKeyEvent`;
-that didn't take either (same class of restriction as the native file
-picker — a `chrome://` WebUI recorder for a security-relevant setting isn't
+Originally Ctrl+Shift+M. That's Chrome's own built-in "Switch profile"
+shortcut — it collides at the browser level no matter what the extension
+declares, confirmed by the user hitting the profile-switcher dialog instead
+of the toggle. Changed to Alt+Shift+M in both `manifest.json`'s
+`suggested_key` and `minimap.js`'s `keydown` check. If picking yet another
+combo, check it against Chrome's default shortcuts first (Ctrl+Shift+N/T/J/
+B/O/Delete are all taken too).
+
+Separately: `manifest.json` declares `commands._execute_action` with that
+`suggested_key`, but across a normal reload-heavy dev loop this showed as
+**"Not set"** on `chrome://extensions/shortcuts` — Chrome seems to only
+apply `suggested_key` on a genuinely fresh install, not on every extension
+reload. Tried setting it by dispatching synthetic key events at the
+shortcuts page's recorder `<input>` via CDP `Input.dispatchKeyEvent`; that
+didn't take either (same class of restriction as the native file picker —
+a `chrome://` WebUI recorder for a security-relevant setting isn't
 something CDP-simulated input can drive).
 
 Given that, don't rely on `chrome.commands` alone. `minimap.js` also
 registers its own `document.addEventListener('keydown', ...)` matching
-Ctrl/Cmd+Shift+M directly and toggles the same way the message-based path
-does — this works regardless of whether Chrome ever binds the manifest
-shortcut, and it's what's actually exercised in practice.
+Alt+Shift+M directly and toggles the same way the message-based path does —
+this works regardless of whether Chrome ever binds the manifest shortcut,
+and it's what's actually exercised in practice.
 
 ## Testing keyboard input over CDP needs the tab focused first
 
@@ -179,7 +187,7 @@ target tab immediately before dispatching key events.
 
 ## What to check when testing
 
-- **Toggle**: click the toolbar icon, press Ctrl+Shift+M (see above — this
+- **Toggle**: click the toolbar icon, press Alt+Shift+M (see above — this
   is handled by a content-script `keydown` listener, not by
   `chrome.commands` actually being bound), or from the *service worker's*
   CDP target — not the page's — call
@@ -203,6 +211,18 @@ target tab immediately before dispatching key events.
   `scale - maxOffset / maxScroll` instead, derived from how much of a given
   scroll delta actually reaches the indicator's on-screen position once
   panning is absorbing part of it.
+- **Drag overshoot**: that same 1:1-tracking math amplifies mouse movement
+  heavily on very long pages (on an 80,000px page, ~227 page-px per
+  mouse-px) — without clamping, letting the cursor drift outside the panel
+  during a drag caused runaway scroll, and worse, moving back required
+  retracing the *entire* overshoot before scroll would respond again (a
+  large dead zone). Fixed by clamping the effective drag input to
+  `panel.getBoundingClientRect()`'s bounds before computing the delta, same
+  as a native scrollbar thumb pinning at the track's edge. To verify: drag
+  far past the panel's bottom (`pointermove` with `clientY` thousands of px
+  below it), confirm `scrollY` pins at max, then move back in small steps
+  and confirm `scrollY` starts decreasing immediately — not only after
+  crossing back through the full overshoot distance.
 - **Hide when not scrollable**: on a page where
   `document.documentElement.scrollHeight <= window.innerHeight`, confirm
   `#minimap-extension-root` never gets the `show` class at all.
