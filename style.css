@@ -20,8 +20,8 @@
   padding: 4px 0 !important;
   box-sizing: border-box !important;
   overflow: hidden !important;
-  background: rgba(20, 20, 24, 0.22) !important;
-  border: 1px solid rgba(140, 140, 150, 0.5) !important;
+  background: rgba(18, 20, 26, 0.5) !important;
+  border: 1px solid rgba(100, 120, 150, 0.6) !important;
   border-radius: 3px !important;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12) !important;
   backdrop-filter: blur(1px) !important;
@@ -38,8 +38,8 @@
   left: 0 !important;
   width: 100% !important;
   box-sizing: border-box !important;
-  background: rgba(205, 210, 220, 0.16) !important;
-  border: 1px solid rgba(205, 210, 220, 0.6) !important;
+  background: rgba(80, 140, 240, 0.28) !important;
+  border: 1px solid rgba(100, 160, 255, 0.9) !important;
   cursor: grab !important;
   pointer-events: auto !important;
   touch-action: none !important;

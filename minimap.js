@@ -15,10 +15,10 @@
   const CONTROL_TAGS = new Set(['BUTTON', 'INPUT', 'SELECT', 'TEXTAREA']);
 
   const COLORS = {
-    heading: 'rgba(235, 238, 245, 0.55)',
-    text: 'rgba(210, 213, 222, 0.3)',
-    media: 'rgba(140, 175, 195, 0.4)',
-    control: 'rgba(210, 180, 140, 0.4)',
+    heading: 'rgba(235, 240, 250, 0.7)',
+    text: 'rgba(200, 208, 220, 0.4)',
+    media: 'rgba(90, 140, 230, 0.7)',
+    control: 'rgba(230, 170, 90, 0.55)',
   };
 
   const root = document.createElement('div');
@@ -223,12 +223,20 @@
     // Indicator's content-relative top is scrollY * (scale - maxOffset / maxScroll) -- panning
     // (maxOffset > 0) eats into how much the indicator itself moves per pixel of scroll. Solve
     // for the scrollY delta that makes the indicator track the pointer 1:1 in screen space.
+    // On a page long enough that panning dominates, that rate can be tiny -- e.g. a 425px-tall
+    // panel standing in for an 80,000px page means ~425px of drag has to span the whole
+    // scrollable range, so 1 clientY px outside that range would otherwise fling the page
+    // wildly. Clamp the effective input to the panel's own bounds first, exactly like a native
+    // scrollbar thumb: dragging past the track's edge pins at min/max instead of amplifying.
+    const panelRect = panel.getBoundingClientRect();
+    const clampedClientY = Math.min(Math.max(event.clientY, panelRect.top), panelRect.bottom);
+
     const scaledPageHeight = pageHeight * scale;
     const maxOffset = Math.max(scaledPageHeight - contentHeight, 0);
     const maxScroll = Math.max(pageHeight - window.innerHeight, 0);
     const indicatorRate = maxScroll > 0 ? scale - maxOffset / maxScroll : scale;
     const rate = Math.abs(indicatorRate) > 1e-6 ? indicatorRate : scale;
-    const deltaPageY = (event.clientY - dragStartClientY) / rate;
+    const deltaPageY = (clampedClientY - dragStartClientY) / rate;
     const top = Math.min(Math.max(dragStartScrollY + deltaPageY, 0), maxScroll);
     window.scrollTo({ top, behavior: 'auto' });
     updateViewport();
