@@ -58,7 +58,9 @@
   }
 
   function applyVisibility() {
-    root.classList.toggle('show', visible && scrollable);
+    const shown = visible && scrollable;
+    root.classList.toggle('show', shown);
+    chrome.runtime.sendMessage({ type: 'minimap:state', shown }).catch(() => {});
   }
 
   function applyZoom(zoomFactor) {

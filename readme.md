@@ -5,24 +5,31 @@ in the corner of the window, with a draggable viewport indicator — not a
 literal miniature screenshot, an indicative one, closer to a code minimap or
 a content-loading skeleton than a photo of the page.
 
-Click the toolbar icon, or press **Ctrl+Shift+M** (**Cmd+Shift+M** on Mac),
-to toggle it. The hotkey is handled directly by a `keydown` listener in
-`minimap.js`, not `chrome.commands`/manifest `suggested_key` — that only
-auto-binds on a genuinely fresh install and was unreliable across the
-reload-heavy dev loop (showed as "Not set" in
-`chrome://extensions/shortcuts` despite being declared). The manifest entry
-is still there so it's rebindable from that page, but nothing depends on it
-actually being bound.
+Click the toolbar icon, or press **Alt+Shift+M** (same on Mac), to toggle
+it. (Originally Ctrl+Shift+M — changed because that's Chrome's own built-in
+"Switch profile" shortcut and collided with it at the browser level, no
+matter what the extension did.) The hotkey is handled directly by a
+`keydown` listener in `minimap.js`, not `chrome.commands`/manifest
+`suggested_key` — that only auto-binds on a genuinely fresh install and was
+unreliable across the reload-heavy dev loop (showed as "Not set" in
+`chrome://extensions/shortcuts` despite being declared, and couldn't be set
+by automation either — same class of restriction as the native file
+picker). The manifest entry is still there so it's rebindable from that
+page, but nothing depends on it actually being bound.
 
 It only appears on pages that actually scroll, and it's capped at 35% of the
 window's height — like VSCode/Sublime, once the page is taller than that,
 the map pans internally (tracked by `stageOffset` in `minimap.js`) to keep
 the current viewport in view, rather than trying to show the whole page at
-once. Dragging the indicator tracks the cursor exactly 1:1 in screen space
-even while panning — see the comment above the drag math in `minimap.js` if
+once. Dragging the indicator tracks the cursor 1:1 in screen space even
+while panning — see the comment above the drag math in `minimap.js` if
 touching it; the naive `mouseDelta / scale` conversion looks right but
-under-moves the indicator once panning starts absorbing part of the
-scroll delta.
+under-moves the indicator once panning starts absorbing part of the scroll
+delta. The drag input is also clamped to the panel's own bounds (like a
+native scrollbar thumb) — without that, on pages long enough that panning
+dominates, the indicator-tracking math amplifies mouse movement so heavily
+that letting the cursor drift outside the panel caused runaway scroll and a
+large dead zone when trying to correct it.
 
 ## How it works
 
@@ -59,10 +66,12 @@ taller than the available panel height.
 
 See `AGENTS.md` for how to load and test this locally.
 
-Styling is intentionally minimal: mostly-transparent panel, muted block
-colors, a thin visible border so the panel still reads as a distinct region
-against arbitrary page backgrounds, and a small vertical inner padding (the
-map's width always exactly matches the panel's outer width — no horizontal
+Styling is a dark, blue-tinted panel with a visible border (`style.css`) and
+matching block colors in `minimap.js`'s `COLORS` — chosen by rendering 5
+palette options side by side in the test browser and picking one; an
+earlier, much more transparent/grey version turned out too subtle to read
+against arbitrary page backgrounds. Small vertical inner padding; the map's
+width always exactly matches the panel's outer width (no horizontal
 padding, so there's no gap between the panel edge and the map content).
 
 Clicking/dragging jumps instantly (`behavior: 'auto'`), not animated —
