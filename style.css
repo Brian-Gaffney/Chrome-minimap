@@ -1,36 +1,50 @@
-#minimap-extension-element {
-	background: rgba(100,100,100,0.4);
-	width: 200px;
-
-	position: fixed;
-	right: 8px;
-	top: 8px;
-
-	overflow-y: hidden;
-
-	z-index:9999;
-
-	pointer-events: none;
-	opacity: 0;
-
-	transition: opacity 0.25s ease-in;
+#minimap-extension-root {
+  position: fixed !important;
+  top: 8px !important;
+  right: 8px !important;
+  z-index: 2147483647 !important;
+  opacity: 0 !important;
+  transition: opacity 0.25s ease-in !important;
+  pointer-events: none !important;
+  transform-origin: top right !important;
 }
 
-#minimap-extension-element.show {
-	opacity: 1;
+#minimap-extension-root.show {
+  opacity: 1 !important;
+  pointer-events: auto !important;
 }
 
-#minimap-extension-element > canvas {
-	width: 200px;
-	opacity: 0.6;
+#minimap-extension-panel {
+  position: relative !important;
+  width: 110px !important;
+  padding: 4px 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  background: rgba(20, 20, 24, 0.22) !important;
+  border: 1px solid rgba(140, 140, 150, 0.5) !important;
+  border-radius: 3px !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12) !important;
+  backdrop-filter: blur(1px) !important;
+  cursor: pointer !important;
 }
 
-#minimap-extension-element-viewport {
-	background-color: rgba(190,0,50,0.5);
-	width: 198px;
+#minimap-extension-stage {
+  display: block !important;
+  pointer-events: none !important;
+}
 
-	position: absolute;
+#minimap-extension-viewport {
+  position: absolute !important;
+  left: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  background: rgba(205, 210, 220, 0.16) !important;
+  border: 1px solid rgba(205, 210, 220, 0.6) !important;
+  cursor: grab !important;
+  pointer-events: auto !important;
+  touch-action: none !important;
+}
 
-	border: 1px solid black;
-	left:0;
+#minimap-extension-viewport:active {
+  cursor: grabbing !important;
 }

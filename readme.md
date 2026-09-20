@@ -1,7 +1,78 @@
-*Todo
+# Minimap
 
-* Hide/show on icon click
-* Click and drag viewport to scroll
-* Bind to DOM changes and rerender canvas
-* Minimap should scroll when it doesn't fit on the page
-* Click non-viewport area to scroll
+A Chrome extension that shows a schematic "skeleton" map of the current page
+in the corner of the window, with a draggable viewport indicator — not a
+literal miniature screenshot, an indicative one, closer to a code minimap or
+a content-loading skeleton than a photo of the page.
+
+Click the toolbar icon, or press **Ctrl+Shift+M** (**Cmd+Shift+M** on Mac),
+to toggle it. The hotkey is handled directly by a `keydown` listener in
+`minimap.js`, not `chrome.commands`/manifest `suggested_key` — that only
+auto-binds on a genuinely fresh install and was unreliable across the
+reload-heavy dev loop (showed as "Not set" in
+`chrome://extensions/shortcuts` despite being declared). The manifest entry
+is still there so it's rebindable from that page, but nothing depends on it
+actually being bound.
+
+It only appears on pages that actually scroll, and it's capped at 35% of the
+window's height — like VSCode/Sublime, once the page is taller than that,
+the map pans internally (tracked by `stageOffset` in `minimap.js`) to keep
+the current viewport in view, rather than trying to show the whole page at
+once. Dragging the indicator tracks the cursor exactly 1:1 in screen space
+even while panning — see the comment above the drag math in `minimap.js` if
+touching it; the naive `mouseDelta / scale` conversion looks right but
+under-moves the indicator once panning starts absorbing part of the
+scroll delta.
+
+## How it works
+
+The content script walks the DOM for structurally significant elements
+(headings, paragraphs/list items/table cells, images/video/canvas/svg, form
+controls), reads each one's real position/size via `getBoundingClientRect`,
+and paints flat shapes for them on a single `<canvas>`:
+
+- headings → a bold light bar
+- text-bearing elements → a few short skeleton-style line bars
+- media (`img`, `video`, `canvas`, `svg`, ...) → a solid colored block
+- controls (`button`, `input`, `select`, `textarea`) → an accent bar
+
+No screenshotting, no cloning real content — just geometry in, flat shapes
+out. That keeps it cheap even on huge pages (capped at 800 blocks) and avoids
+the fidelity/isolation headaches of rendering real page content in miniature
+(inherited CSS, resource loading, tainted canvases, etc.).
+
+Re-renders on DOM mutation (debounced) and resize. The viewport indicator and
+the minimap's own internal scroll position update on every real scroll event
+and during a drag.
+
+The panel counter-scales against the page's browser zoom level (relayed from
+`background.js` via `chrome.tabs.getZoom`/`onZoomChange`, since only the
+service worker can read it) so it stays a constant on-screen size regardless
+of zoom.
+
+## Status
+
+All the original TODOs are implemented: toggle on icon click, click-and-drag
+the viewport indicator, click elsewhere on the minimap to jump-scroll, the
+minimap re-renders on DOM changes, and it scrolls internally when the page is
+taller than the available panel height.
+
+See `AGENTS.md` for how to load and test this locally.
+
+Styling is intentionally minimal: mostly-transparent panel, muted block
+colors, a thin visible border so the panel still reads as a distinct region
+against arbitrary page backgrounds, and a small vertical inner padding (the
+map's width always exactly matches the panel's outer width — no horizontal
+padding, so there's no gap between the panel edge and the map content).
+
+Clicking/dragging jumps instantly (`behavior: 'auto'`), not animated —
+matches how editor minimaps behave, and sidesteps an environment where
+`window.scrollTo({behavior: 'smooth'})` triggered from a content script was
+observed to silently no-op (see AGENTS.md).
+
+## Known limitations
+
+- Classification is tag-based and simple (e.g. a `<div>` full of text won't
+  be detected as a text block unless it matches the selector list in
+  `minimap.js`). Good enough for an "indicative" map, not exhaustive.
+- Only the first 800 matched elements are drawn on extremely large pages.

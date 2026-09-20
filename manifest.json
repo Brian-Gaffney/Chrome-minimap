@@ -1,39 +1,33 @@
 {
+  "manifest_version": 3,
   "name": "Minimap",
-  "version": "0.1",
-  "manifest_version": 2,
-  "description": "Displays a little minimap",
-  "browser_action": {
-    "default_title": "Displays a little minimap",
-    "default_icon": {
-      "19": "icon.png"
+  "version": "1.0.0",
+  "description": "Shows a live minimap of the page with a draggable viewport indicator.",
+  "icons": {
+    "16": "icon.png"
+  },
+  "action": {
+    "default_icon": "icon.png",
+    "default_title": "Toggle minimap"
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+M",
+        "mac": "Alt+Shift+M"
+      },
+      "description": "Toggle minimap"
     }
+  },
+  "background": {
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {
-      "matches": [
-        "<all_urls>"
-      ],
-      "run_at": "document_end",
-      "js": [
-        "lodash.js",
-        "html2canvas.js",
-        "minimap.js"
-      ],
-      "css": [
-        "style.css"
-      ]
+      "matches": ["<all_urls>"],
+      "run_at": "document_idle",
+      "js": ["minimap.js"],
+      "css": ["style.css"]
     }
-  ],
-  "background": {
-    "scripts": [
-      "background.js"
-    ],
-    "persistent": false
-  },
-  "permissions": [
-    "tabs",
-    "http://*/*",
-    "https://*/*"
   ]
 }
